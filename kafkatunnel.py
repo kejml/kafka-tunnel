@@ -26,17 +26,19 @@ def aws(jump_host,zookeeper_port,kafka_port,region,profile):
 
 @cli.command(help='provide the IP\'s of your zookeeper/kafka')
 @click.argument('jump_host')
-@click.argument('zookeeper_ips')
-@click.argument('kafka_ips')
-@click.argument('schemaregistry_ips',default='')
-@click.option('-zp','--zookeeper_port',default='2181')
+@click.argument('kafka_ips', default = '')
+@click.option('-zi','--zookeeper_ips', default = '')
+@click.option('-sp','--schemaregistry_ips',default='')
 @click.option('-kp','--kafka_port',default='9092')
+@click.option('-zp','--zookeeper_port',default='2181')
 @click.option('-sp','--schemaregistry_port',default='8081')
-def manual(jump_host,zookeeper_ips, kafka_ips, schemaregistry_ips, zookeeper_port, kafka_port, schemaregistry_port):
+def manual(jump_host, kafka_ips, zookeeper_ips, schemaregistry_ips, kafka_port, zookeeper_port, schemaregistry_port):
     instances=[]
     click.echo(' * using manual ip\'s ...')
     man = ManualInstances()
-    instances += man.getIps('zookeeper',zookeeper_ips, zookeeper_port)
+    if zookeeper_ips:
+        instances += man.getIps('zookeeper',zookeeper_ips, zookeeper_port)
+
     instances += man.getIps('kafka',kafka_ips, kafka_port)
     if schemaregistry_ips:
         instances += man.getIps('schemareg', schemaregistry_ips, schemaregistry_port)
@@ -64,7 +66,7 @@ def remove_local_interfaces(instances):
         if sys.platform == 'darwin':
            cmd = ['sudo', 'ifconfig', 'lo0', '-alias', instance.ip]
         else:
-            cmd = ['sudo', 'ip', 'del', 'a', 'dev', 'lo', instance.ip]
+            cmd = ['sudo', 'ip', 'a', 'del', 'dev', 'lo', instance.ip + '/32']
         subprocess.call(cmd)
 
 def print_instances(instances):
